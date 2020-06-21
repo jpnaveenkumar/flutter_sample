@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'components/page1.dart';
 import 'components/page2.dart';
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 
 class MyHttpOverrides extends HttpOverrides{
   @override
@@ -47,8 +49,27 @@ class Second extends State<First>{
 }
 class page extends StatelessWidget{
 
+  FirebaseMessaging firebaseMessaging = new FirebaseMessaging();
+
   @override
   Widget build(BuildContext context){
+
+    firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message){
+        print(message);
+      },
+      onResume: (Map<String, dynamic> message){
+        print(message);
+      },
+      onLaunch: (Map<String, dynamic> message) {
+        print(message);
+      }
+    );
+
+    firebaseMessaging.getToken().then((value){
+      print("token : "+value);
+    });
+
     return  Scaffold(
         appBar: AppBar(
           title: Text("NaveenKumar"),
