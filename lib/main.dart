@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:uni_links/uni_links.dart';
 import 'components/page1.dart';
 import 'components/page2.dart';
 import 'dart:io';
@@ -51,6 +54,31 @@ class page extends StatelessWidget{
 
   FirebaseMessaging firebaseMessaging = new FirebaseMessaging();
 
+  getInitialLink(BuildContext buildContext) async
+  {
+    try {
+      Uri initialUri = await getInitialUri();
+      print(initialUri);
+      Fluttertoast.showToast(
+          msg: initialUri.toString(),
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0
+      );
+      if(initialUri != null){
+        var list = initialUri.queryParametersAll.entries.toList();
+        Future.delayed(Duration.zero,(){
+          Navigator.pushNamed(buildContext, '/page2');
+        });
+      }
+    } catch(e) {
+      print(e);
+    }
+  }
+
   @override
   Widget build(BuildContext context){
 
@@ -70,45 +98,77 @@ class page extends StatelessWidget{
       print("token : "+value);
     });
 
+    //getInitialLink();
+
     return  Scaffold(
         appBar: AppBar(
           title: Text("NaveenKumar"),
         ),
-        body: Builder(
-            builder: (BuildContext context1) => Container(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          child: GestureDetector(
-            onVerticalDragStart: (details){
-                final snackBar = SnackBar(content: Text('swiped right'));
-                Scaffold.of(context1).showSnackBar(snackBar);
-                Navigator.pushNamed(context,'/page2');
-            },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Container(
-                  width: 50,
-                  height: 50,
-                  margin: new EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                      color: Colors.amber
-                  ),
+        body: StreamBuilder(
+          stream: getLinksStream(),
+          builder: (context, snapshot) {
+            if(snapshot.hasData){
+              var uri = Uri.parse(snapshot.data);
+              print(uri);
+              var list =uri.queryParametersAll.entries.toList();
+              print(list);
+              Fluttertoast.showToast(
+                  msg: uri.toString(),
+                  toastLength: Toast.LENGTH_SHORT,
+                  gravity: ToastGravity.CENTER,
+                  timeInSecForIosWeb: 1,
+                  backgroundColor: Colors.red,
+                  textColor: Colors.white,
+                  fontSize: 16.0
+              );
+              Future.delayed(Duration.zero,(){
+                Navigator.pushNamed(context, '/page2');
+              });
+            }else{
+              print(snapshot.error);
+              try{
+                getInitialLink(context);
+              }catch(ex){
+
+              }
+            }
+            return Builder(
+                builder: (BuildContext context1) => Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              child: GestureDetector(
+                onVerticalDragStart: (details){
+                    final snackBar = SnackBar(content: Text('swiped right'));
+                    Scaffold.of(context1).showSnackBar(snackBar);
+                    Navigator.pushNamed(context,'/page2');
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+                      width: 50,
+                      height: 50,
+                      margin: new EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                          color: Colors.amber
+                      ),
+                    ),
+                    Container(
+                      margin: new EdgeInsets.all(10),
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                          color: Colors.amber
+                      ),
+                    ),
+                    First()
+                  ],
                 ),
-                Container(
-                  margin: new EdgeInsets.all(10),
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                      color: Colors.amber
-                  ),
-                ),
-                First()
-              ],
-            ),
-          ),
-        )
+              ),
+            )
+            );
+          }
         )
     );
   }
